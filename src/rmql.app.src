@@ -1,6 +1,6 @@
 {application, rmql, [
 	{description, "RabbitMQ shared library"},
-	{vsn, git},
+	{vsn, "1.0.0"},
 	{registered, []},
 	{modules, []},
 	{applications, [
