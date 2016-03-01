@@ -16,7 +16,7 @@
 %% Connection methods
 %% -------------------------------------------------------------------------
 
--spec connection_start() -> {'ok', pid()} | {'error', any()}.
+-spec connection_start(list()) -> {'ok', pid()} | {'error', any()}.
 connection_start(Opts) ->
     {ok, AmqpSpec, _Qos} = parse_opts(Opts),
     %% To avoid deadlock on app shutdown add timeout to start amqp connection
