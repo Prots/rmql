@@ -2,6 +2,7 @@
 	{description, "RabbitMQ shared library"},
 	{vsn, git},
 	{registered, []},
+	{modules, []},
 	{applications, [
 		kernel,
 		stdlib,
