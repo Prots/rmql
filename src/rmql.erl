@@ -4,7 +4,7 @@
 
 -include_lib("amqp_client/include/amqp_client.hrl").
 
--export([connection_start/0, connection_close/1]).
+-export([connection_start/0, connection_start/1, connection_close/1]).
 -export([channel_open/0, channel_open/1, channel_close/1]).
 -export([exchange_declare/4]).
 -export([queue_declare/3, queue_declare/5, queue_bind/3]).
@@ -17,20 +17,23 @@
 %% -------------------------------------------------------------------------
 
 -spec connection_start() -> {'ok', pid()} | {'error', any()}.
-connection_start() ->
-	{ok, AmqpSpec, _Qos} = parse_opts([]),
-	%% To avoid deadlock on app shutdown add timeout to start amqp connection
-	Pid = self(),
-	spawn(fun() ->
-		Result = amqp_connection:start(AmqpSpec),
-		Pid ! {amqp_connection, Result}
-	end),
-	receive
-		{amqp_connection, Result} -> Result
-	after
-		2000 -> {error, timeout}
-	end.
+connection_start(Opts) ->
+    {ok, AmqpSpec, _Qos} = parse_opts(Opts),
+    %% To avoid deadlock on app shutdown add timeout to start amqp connection
+    Pid = self(),
+    spawn(fun() ->
+        Result = amqp_connection:start(AmqpSpec),
+        Pid ! {amqp_connection, Result}
+    end),
+    receive
+        {amqp_connection, Result} -> Result
+    after
+        2000 -> {error, timeout}
+    end.
 
+-spec connection_start() -> {'ok', pid()} | {'error', any()}.
+connection_start() ->
+    connection_start([]).
 
 -spec connection_close(pid()) -> 'ok'.
 connection_close(Conn) ->
@@ -223,7 +226,6 @@ tx_commit(Chan) ->
 
 parse_opts(undefined) ->
 	parse_opts([]);
-
 parse_opts(Opts) ->
 	DefaultPropList =
 		case application:get_env(rmql, amqp_props) of
