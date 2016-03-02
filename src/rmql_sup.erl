@@ -24,8 +24,5 @@ start_link() ->
 %% ===================================================================
 
 init([]) ->
-    {ok, { {one_for_one, 5, 10}, [
-		{rmql_pool, {rmql_pool, start_link, []},
-			permanent, 5000, worker, [rmql_pool]}
-	]} }.
+    {ok, { {one_for_one, 5, 10}, []} }.
 
