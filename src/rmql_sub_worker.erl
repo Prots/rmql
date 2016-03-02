@@ -1,4 +1,4 @@
--module(ow_rmq_sub_worker).
+-module(rmql_sub_worker).
 -behaviour(gen_server).
 
 -include("rmql.hrl").
