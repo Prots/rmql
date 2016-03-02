@@ -160,14 +160,14 @@ handle_info(#'DOWN'{object = Pid}, St = #st{conn = Pid, channel = Pid, is_shutdo
 handle_info(#'DOWN'{object = Pid}, St = #st{workers = Workers}) ->
     {noreply, St#st{workers = lists:delete(Pid, Workers)}};
 % Message From RabbitMQ
-handle_info(Msg, #st{workers = Workers, mod_fun = ModFun} = State) ->
+handle_info(Msg, #st{workers = Workers, mod_fun = ModFun, exchange = Exchange} = State) ->
     NewWorkers =
         case rmql:get_tag_payload(Msg) of
             {Tag, Payload} ->
                 Pid = spawn(fun() ->
 
                     try
-                        handle(Payload, ModFun)
+                        handle(Payload, Exchange, ModFun)
                     after
                         ack(State, Tag)
                     end
@@ -210,7 +210,7 @@ schedule(Action, 0) ->
 schedule(Action, Time) ->
     erlang:send_after(Time, self(), Action).
 
-handle(Payload, {Module, Function}) when is_binary(Payload) ->
+handle(Payload, Exchange, {Module, Function}) when is_binary(Payload) ->
     try
         erlang:apply(Module, Function, [Payload])
     catch
@@ -218,8 +218,8 @@ handle(Payload, {Module, Function}) when is_binary(Payload) ->
             ?LOG_ERROR("Crash handle fun ~p ~p ~p ~p~n", [HandleExp, HandleReason, Payload, erlang:get_stacktrace()]),
             error
     end;
-handle(_Payload, _) ->
-    ?LOG_ERROR("bad request: ~p", [_Payload]).
+handle(Payload, _, _) ->
+    ?LOG_ERROR("Bad request: ~p", [Payload]).
 
 ack(St, Tag) ->
     ok = rmql:basic_ack(St#st.channel, Tag).
