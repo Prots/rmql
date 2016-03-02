@@ -62,7 +62,7 @@ init(Args) ->
     Username = proplists:get_value(username, Args),
     Password = proplists:get_value(password, Args),
     VHost = proplists:get_value(vhost, Args),
-    Queue = proplists:get_value(queue, Args),
+    Queue = get_queue(proplists:get_value(queue, Args)),
     Exchange = proplists:get_value(exchange, Args),
     PrefSize = proplists:get_value(prefetch_size, Args),
     ModFun = proplists:get_value(handle_modfun, Args),
@@ -236,3 +236,8 @@ handle(_Payload, _) ->
 
 ack(St, Tag) ->
     ok = rmql:basic_ack(St#st.channel, Tag).
+
+get_queue({Module, Function, Args}) ->
+    erlang:apply(Module, Function, Args);
+get_queue(QueueName) ->
+    QueueName.
