@@ -212,7 +212,7 @@ schedule(Action, Time) ->
 
 handle(Payload, Exchange, {Module, Function}) when is_binary(Payload) ->
     try
-        erlang:apply(Module, Function, [Payload])
+        erlang:apply(Module, Function, [Exchange, Payload])
     catch
         HandleExp:HandleReason ->
             ?LOG_ERROR("Crash handle fun ~p ~p ~p ~p~n", [HandleExp, HandleReason, Payload, erlang:get_stacktrace()]),
