@@ -57,16 +57,16 @@ start_link(Attrs) ->
 
 init(Args) ->
 
-    {ok, Host} = proplists:get_value(host, Args),
-    {ok, Port} = proplists:get_value(port, Args),
-    {ok, Username} = proplists:get_value(username, Args),
-    {ok, Password} = proplists:get_value(password, Args),
-    {ok, VHost} = proplists:get_value(vhost, Args),
-    {ok, Queue} = proplists:get_value(queue, Args),
-    {ok, Exchange} = proplists:get_value(exchange, Args),
-    {ok, PrefSize} = proplists:get_value(prefetch_size, Args),
-    {ok, ModFun} = proplists:get_value(handle_modfun, Args),
-    {ok, ReconnectInterval} = proplists:get_value(reconn_interval, Args),
+    Host = proplists:get_value(host, Args),
+    Port = proplists:get_value(port, Args),
+    Username = proplists:get_value(username, Args),
+    Password = proplists:get_value(password, Args),
+    VHost = proplists:get_value(vhost, Args),
+    Queue = proplists:get_value(queue, Args),
+    Exchange = proplists:get_value(exchange, Args),
+    PrefSize = proplists:get_value(prefetch_size, Args),
+    ModFun = proplists:get_value(handle_modfun, Args),
+    ReconnectInterval = proplists:get_value(reconn_interval, Args),
 
     ?LOG_INFO("Start RMQ consumer: ~p:~p ~p~n", [Host, Port, Queue]),
 
