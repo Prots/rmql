@@ -6,7 +6,7 @@
 %% API
 -export([start_link/1]).
 
--ignore_xref([{start_link,2}]).
+-ignore_xref([{start_link, 2}]).
 
 -export([
     init/1,
@@ -18,27 +18,27 @@
 ]).
 
 
--record('DOWN',{
-    ref 			:: reference(),
-    type = process 	:: process,
-    object 			:: pid(),
-    info 			:: term() | noproc | noconnection
+-record('DOWN', {
+    ref :: reference(),
+    type = process :: process,
+    object :: pid(),
+    info :: term() | noproc | noconnection
 }).
 
 -record(st, {
-    host            :: string(),
-    port            :: pos_integer(),
-    username        :: binary(),
-    password        :: binary(),
-    vhost           :: binary(),
-    queue           :: binary(),
-    exchange        :: binary(),
-    prefetch_size   :: pos_integer(),
-    conn            :: pid(),
-    channel         :: pid(),
+    host :: string(),
+    port :: pos_integer(),
+    username :: binary(),
+    password :: binary(),
+    vhost :: binary(),
+    queue :: binary(),
+    exchange :: binary(),
+    prefetch_size :: pos_integer(),
+    conn :: pid(),
+    channel :: pid(),
     channel_tag,
-    workers = []    :: list(),
-    mod_fun         :: {atom(), atom()},
+    workers = [] :: list(),
+    mod_fun :: {atom(), atom()},
     reconn_interval :: integer(),
     is_shutdown = false :: boolean()
 }).
@@ -101,7 +101,7 @@ handle_info(open_connection, #st{conn = undefined, is_shutdown = false,
     host = Host, port = Port, username = Username, password = Password, vhost = VHost} = St) ->
 
     NewSt =
-        case catch rmql:open_connection(Host,Port,Username,Password,VHost) of
+        case catch rmql:open_connection(Host, Port, Username, Password, VHost) of
             {ok, Conn} ->
                 ?LOG_INFO("RMQ consumer open connection: ~p~n", [Conn]),
                 _MonConnRef = erlang:monitor(process, Conn),
@@ -115,7 +115,7 @@ handle_info(open_channel, #st{conn = undefined, is_shutdown = false} = St) ->
     ok = schedule(open_connection, 0),
     {noreply, St};
 handle_info(open_channel, #st{conn = Conn, channel = undefined, queue = Queue, exchange = Exchange,
-        is_shutdown = false} = St) ->
+    is_shutdown = false} = St) ->
     NewSt =
         case rmql:open_channel(Conn) of
             {ok, Channel} ->
@@ -134,7 +134,7 @@ handle_info(open_channel, #st{conn = Conn, channel = undefined, queue = Queue, e
                 catch
                     _Exp:_Reason ->
                         ?LOG_INFO("Channel error ~p: ~p~n", [_Exp, _Reason]),
-                            catch exit(Channel, kill),
+                        catch exit(Channel, kill),
                         St
                 end;
             _ConnError ->
@@ -172,7 +172,7 @@ handle_info(Msg, #st{workers = Workers, mod_fun = ModFun} = State) ->
                         ack(State, Tag)
                     end
 
-                            end),
+                end),
 
                 _Ref = monitor(process, Pid),
                 [Pid | Workers];
@@ -211,25 +211,12 @@ schedule(Action, Time) ->
     erlang:send_after(Time, self(), Action).
 
 handle(Payload, {Module, Function}) when is_binary(Payload) ->
-    ReqTerm =
-        try
-            binary_to_term(Payload)
-        catch
-            _Exp:_Error ->
-                {error, {badterm, Payload}}
-        end,
-
-    case ReqTerm of
-        {error, _} = Error ->
-            Error;
-        _ ->
-            try
-                erlang:apply(Module, Function, ReqTerm)
-            catch
-                _HandleExp:_HandleReason ->
-                    ?LOG_ERROR("Crash handle fun ~p ~p ~p ~p~n", [_HandleExp, _HandleReason, ReqTerm, erlang:get_stacktrace()]),
-                    error
-            end
+    try
+        erlang:apply(Module, Function, [Payload])
+    catch
+        _HandleExp:_HandleReason ->
+            ?LOG_ERROR("Crash handle fun ~p ~p ~p ~p~n", [_HandleExp, _HandleReason, ReqTerm, erlang:get_stacktrace()]),
+            error
     end;
 handle(_Payload, _) ->
     ?LOG_ERROR("bad request: ~p", [_Payload]).
