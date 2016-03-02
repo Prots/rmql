@@ -214,8 +214,8 @@ handle(Payload, {Module, Function}) when is_binary(Payload) ->
     try
         erlang:apply(Module, Function, [Payload])
     catch
-        _HandleExp:_HandleReason ->
-            ?LOG_ERROR("Crash handle fun ~p ~p ~p ~p~n", [_HandleExp, _HandleReason, ReqTerm, erlang:get_stacktrace()]),
+        HandleExp:HandleReason ->
+            ?LOG_ERROR("Crash handle fun ~p ~p ~p ~p~n", [HandleExp, HandleReason, Payload, erlang:get_stacktrace()]),
             error
     end;
 handle(_Payload, _) ->
